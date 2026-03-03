@@ -152,6 +152,13 @@ class AccountMove(models.Model):
 
     def partner_banks_to_show(self):
         self.ensure_one()
+        if (
+            self.payment_mode_id.payment_method_id.code == "sepa_direct_debit"
+        ):  # pragma: no cover
+            return (
+                self.mandate_id.partner_bank_id
+                or self.partner_id.valid_mandate_id.partner_bank_id
+            )
         if self.partner_bank_id:
             return self.partner_bank_id
         if self.payment_mode_id.show_bank_account_from_journal:
@@ -161,13 +168,6 @@ class AccountMove(models.Model):
                 return self.payment_mode_id.variable_journal_ids.mapped(
                     "bank_account_id"
                 )
-        if (
-            self.payment_mode_id.payment_method_id.code == "sepa_direct_debit"
-        ):  # pragma: no cover
-            return (
-                self.mandate_id.partner_bank_id
-                or self.partner_id.valid_mandate_id.partner_bank_id
-            )
         # Return this as empty recordset
         return self.partner_bank_id
 
